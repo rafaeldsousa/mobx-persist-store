@@ -1,6 +1,7 @@
 export * from './clearPersistedStore';
 export * from './configurePersistable';
 export * from './getPersistedStore';
+export * from './addMapping';
 export * from './hydrateStore';
 export * from './isHydrated';
 export * from './isPersisting';

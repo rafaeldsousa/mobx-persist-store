@@ -82,5 +82,8 @@
     "setupFiles": [
       "jest-localstorage-mock"
     ]
+  },
+  "dependencies": {
+    "serializr": "^2.0.5"
   }
 }

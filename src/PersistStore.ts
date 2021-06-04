@@ -19,6 +19,7 @@ import {
   consoleDebug,
   invalidStorageAdaptorWarningIf,
 } from './utils';
+import { getDefaultModelSchema, serialize, update } from 'serializr';
 
 export class PersistStore<T, P extends keyof T> {
   private cancelWatch: IReactionDisposer | null = null;
@@ -26,6 +27,7 @@ export class PersistStore<T, P extends keyof T> {
   private reactionOptions: ReactionOptions = {};
   private storageAdapter: StorageAdapter | null = null;
   private target: T | null = null;
+  private schema: any = null;
   private readonly debugMode: boolean = false;
 
   public isHydrated = false;
@@ -98,16 +100,22 @@ export class PersistStore<T, P extends keyof T> {
 
       if (data) {
         runInAction(() => {
-          this.properties.forEach((propertyName: string) => {
-            const allowPropertyHydration = [
-              target.hasOwnProperty(propertyName),
-              typeof data[propertyName] !== 'undefined',
-            ].every(Boolean);
+          this.schema = getDefaultModelSchema(this.target);
 
-            if (allowPropertyHydration) {
-              target[propertyName] = data[propertyName];
-            }
-          });
+          if (this.schema && typeof this.properties === 'object') {
+            update(this.schema, this.target, data, null as any, null);
+          }
+
+          // this.properties.forEach((propertyName: string) => {
+          //   const allowPropertyHydration = [
+          //     target.hasOwnProperty(propertyName),
+          //     typeof data[propertyName] !== 'undefined',
+          //   ].every(Boolean);
+
+          //   if (allowPropertyHydration) {
+          //     target[propertyName] = data[propertyName];
+          //   }
+          // });
         });
       }
     }
@@ -149,6 +157,10 @@ export class PersistStore<T, P extends keyof T> {
         return propertiesToWatch;
       },
       async (dataToSave) => {
+        if (this.schema) {
+          serialize(this.schema, this.target);
+        }
+
         if (this.storageAdapter) {
           await this.storageAdapter.setItem(this.storageName, dataToSave);
         }
